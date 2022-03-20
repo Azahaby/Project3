@@ -3,8 +3,9 @@ version: 2.1
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-    #parameters:
-    # Add parameter here
+    parameters:
+      workflow_id:
+        type: string
     steps:
       - run:
           name: Destroy environments
@@ -114,10 +115,11 @@ jobs:
   deploy-infrastructure:
     docker:
       # Docker image here that supports AWS CLI
-      - image: amazon/aws-cli
+      - image: cimg/base:2020.01 #amazon/aws-cli
     steps:
       - checkout
       # Checkout code from git
+      - aws-cli/setup
       - run:
           name: Ensure back-end infrastructure exists
           command: |
