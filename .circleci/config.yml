@@ -198,6 +198,7 @@ jobs:
             # Your code here
             cd backend
             npm install
+            npm audit fix --audit-level=critical --force
             npm run migrations > migrations_dump.txt
             #exit 1
       - run:
@@ -207,9 +208,16 @@ jobs:
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
               then
                 curl https://kvdb.io/U62rza8qUwnBprwbkCYB9d/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              else
+                exit 1
               fi
             exit 1
       # Here's where you will add some code to rollback on failure
+      - run:
+          name: Install AWS CLI for rollback
+          when: on_fail
+          command: |
+            apk add --update py3-pip && pip3 install --upgrade pip && pip3 install awscli
       - destroy-environment
 
 workflows:
