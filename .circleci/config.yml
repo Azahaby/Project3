@@ -147,16 +147,14 @@ jobs:
             # Your code here
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --filters "Name=tag:Project,Values=udapeople" \
+            #--filters "Name=tag:Project,Values=udapeople" \
             --output text >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/inventory.txt
             #exit 1
       - persist_to_workspace:
-          #root: ~/
-          root: ansible
+          root: ~/
           paths:
-            #- project/.circleci/ansible/inventory.txt
-            - inventory.txt
+            - project/.circleci/ansible/inventory.txt
       - destroy-environment
   configure-infrastructure:
     docker:
@@ -166,8 +164,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["65:c6:5f:55:c0:06:d3:0b:dc:b1:9f:81:3b:e5:5d:15"]
       - attach_workspace:
-          #at: ~/
-          at: /tmp/ansible
+          at: ~/
       - run:
           name: Install dependencies
           command: |
