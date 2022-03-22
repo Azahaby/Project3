@@ -149,7 +149,7 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --filters "Name=tag:Project,Values=udapeople" \
             --output text >> .circleci/ansible/inventory.txt
-            cat inventory.txt
+            cat .circleci/ansible/inventory.txt
             #exit 1
       - persist_to_workspace:
           root: ~/
@@ -177,6 +177,11 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml
             exit 1
       # Here's where you will add some code to rollback on failure
+      - run:
+          name: Install AWS CLI for rollback
+          when: on_fail
+          command: |
+            apk add --update py3-pip && pip3 install --upgrade pip && pip3 install awscli
       - destroy-environment
 
 workflows:
