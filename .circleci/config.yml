@@ -199,9 +199,9 @@ jobs:
             cd backend
             npm install
             npm audit fix --audit-level=critical --force
-            npm run migrations > migrations_dump.txt
             npm run build
-            #exit 1
+            npm run migrations > migrations_dump.txt
+             #exit 1
       - run:
           name: Send migration results to memstash/kvdb
           command: |
