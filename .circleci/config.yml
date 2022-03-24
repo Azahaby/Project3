@@ -237,7 +237,6 @@ jobs:
             sudo apt-get -y -qq update
             sudo apt-get -y -qq install python3
             sudo apt-get -qq install awscli
-            npm run migrations:revert
       - destroy-environment
 
   deploy-frontend:
