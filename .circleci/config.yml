@@ -228,7 +228,7 @@ jobs:
               else
                 exit 1
               fi
-            exit 1
+            #exit 1
       # Here's where you will add some code to rollback on failure
       - run:
           name: Install AWS CLI for rollback
@@ -237,6 +237,55 @@ jobs:
             sudo apt-get -y -qq update
             sudo apt-get -y -qq install python3
             sudo apt-get -qq install awscli
+      - destroy-environment
+
+  deploy-frontend:
+    docker:
+      # Docker image here that supports AWS CLI
+      - image: circleci/node:13.8.0
+    steps:
+      # Checkout code from git
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - run:
+          name: Install tar
+          command: |
+            # your code here
+            sudo apt-get update -y
+            sudo apt-get install -y tar
+      - run:
+          name: Install npm
+          command: |
+            cd frontend
+            sudo npm install webpack-dev-server -g
+            sudo npm install
+      - run:
+          name: Install AWS CLI
+          command: |
+            sudo apt-get -y -qq update
+            sudo apt-get -y -qq install python3
+            sudo apt-get -qq install awscli
+      - run:
+          name: Get backend url
+          command: |
+            # your code here
+            export BACKEND_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
+      - run:
+          name: Deploy frontend objects
+          command: |
+            # your code here
+            cd frontend
+            npm install
+            npm run build
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+            exit 1
+      # Here's where you will add some code to rollback on failure
       - destroy-environment
 
 workflows:
@@ -260,3 +309,5 @@ workflows:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
