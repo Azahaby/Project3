@@ -283,8 +283,57 @@ jobs:
             sudo npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-            exit 1
+            #exit 1
       # Here's where you will add some code to rollback on failure
+      - run:
+          name: delete s3 bucket
+          when: on_fail
+          command: |
+            aws s3 rm --recursive s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment
+
+  deploy-backend:
+    docker:
+      # Docker image here that supports Ansible
+      - image: python:3.7-alpine3.11
+    steps:
+      # Checkout code from git
+      - checkout
+      # Add ssh keys with fingerprint
+      - add_ssh_keys:
+          fingerprints: ["65:c6:5f:55:c0:06:d3:0b:dc:b1:9f:81:3b:e5:5d:15"]
+      # attach workspace
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            # your code here
+            apk add --update ansible openssh-client tar gzip
+      - run:
+          name: Deploy backend
+          command: |
+            # your code here
+            cd backend
+            npm i
+            npm run build
+            cd ..
+            tar -C backend -czvf artifact.tar.gz .
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is -------"
+            cat inventory.txt
+            ansible-playbook -i inventory.txt deploy-backend.yml
+      # Here's where you will add some code to rollback on failure
+      - run:
+          name: Install AWS CLI for rollback
+          when: on_fail
+          command: |
+            apk add --update py3-pip && pip3 install --upgrade pip && pip3 install awscli
+      - run:
+          name: delete s3 bucket
+          when: on_fail
+          command: |
+            aws s3 rm --recursive s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
       - destroy-environment
 
 workflows:
@@ -309,4 +358,6 @@ workflows:
       - run-migrations:
           requires: [configure-infrastructure]
       - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
           requires: [run-migrations]
