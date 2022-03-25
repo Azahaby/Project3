@@ -360,4 +360,4 @@ workflows:
       - deploy-frontend:
           requires: [run-migrations]
       - deploy-backend:
-          requires: [run-frontend]
+          requires: [deploy-frontend]
