@@ -247,23 +247,24 @@ jobs:
       - restore_cache:
           keys: [frontend-build]
       - run:
+          name: Install AWS CLI
+          command: |
+            sudo apt-get -y -qq update
+            sudo apt-get -y -qq install python3
+            sudo apt-get -qq install awscli
+      - run:
+          name: Install npm
+          command: |
+            cd frontend
+            sudo npm install webpack-dev-server -g
+            sudo npm install
+      - run:
           name: Install tar
           command: |
             # your code here
             sudo apt-get update -y
             sudo apt-get install -y tar
-      - run:
-          name: Install npm
-          command: |
-            cd frontend
-            npm install webpack-dev-server -g
-            npm install
-      - run:
-          name: Install AWS CLI
-          command: |
-            apt-get -y -qq update
-            apt-get -y -qq install python3
-            apt-get -qq install awscli
+
       - run:
           name: Get backend url
           command: |
@@ -279,7 +280,7 @@ jobs:
             # your code here
             cd frontend
             #npm install
-            npm run build
+            sudo npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
             exit 1
