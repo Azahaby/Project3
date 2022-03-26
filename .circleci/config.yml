@@ -214,7 +214,7 @@ jobs:
             npm install
             #npm audit fix --audit-level=critical --force
             npm run build
-            npm run migrations:revert
+            #npm run migrations:revert
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
             migration_status=$(cat migrations_dump.txt | grep -c "has been executed successfully")
@@ -323,7 +323,9 @@ jobs:
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
+            export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook -i inventory.txt deploy-backend.yml
+            exit 1
       # Here's where you will add some code to rollback on failure
       - run:
           name: Install AWS CLI for rollback
